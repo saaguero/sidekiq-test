@@ -1,0 +1,24 @@
+version: '3'
+services:
+  redis:
+    image: redis
+  web:
+    build: .
+    command: bundle exec rackup -p 8080 -o 0.0.0.0
+    volumes:
+      - .:/myapp
+    environment:
+      REDIS_URL: "redis://redis:6379/0"
+    ports:
+      - "8080:8080"
+    depends_on:
+      - redis
+  sidekiq:
+    build: .
+    command: 'bundle exec sidekiq -r ./worker.rb -q critical -q default -q low'
+    volumes:
+      - ./:/myapp
+    environment:
+      REDIS_URL: "redis://redis:6379/0"
+    depends_on:
+      - redis
